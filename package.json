@@ -1,6 +1,6 @@
 {
   "name": "pdu.js",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "A PDU parser and generator for browser and node",
   "homepage": "http://github.com/emilsedgh/pdu.js",
   "main": "./pdu",
