@@ -20,7 +20,7 @@ var pdu = require('pdu');
 ```js
     pdu.generate({
       text:'Some text',
-      receiver:98xxxxxxxxxx //MSISDN
+      receiver:999999999999, //MSISDN
       encoding:'16bit' //Or 7bit if you're sending an ascii message.
     });
 ```
@@ -29,7 +29,7 @@ returns an array of generated pdu's.
 
 ### pdu.parse()
 ```js
-pdu.parse('06918919015000240C9189194238148900003110211052254117CAB03D3C1FCBD3703AA81D5E97E7A079D93D2FBB00')
+pdu.parse('06918919015000240C9189194238148900003110211052254117CAB03D3C1FCBD3703AA81D5E97E7A079D93D2FBB00');
 ```
 
 Returns an object, containing parsed information:
@@ -41,4 +41,4 @@ sender_type: '91',
 encoding: '7bit',
 time: 1357953952000,
 text: 'Javascript makes sense.' }
-````
+```
