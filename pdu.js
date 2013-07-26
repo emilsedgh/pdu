@@ -4,28 +4,25 @@ pduParser.parse = function(pdu) {
     //Cursor points to the last octet we've read.
     var cursor = 0;
 
-    var smscSize = parseInt(pdu.slice(0, 2), 16);
-    cursor += 2;
+    var buffer = new Buffer(pdu.slice(0,4), 'hex');
+    var smscSize = buffer[0];
+    var smscType = buffer[1].toString(16);
+    cursor = (smscSize*2+2);
+    var smscNum  = pduParser.deSwapNibbles(pdu.slice(4, cursor));
 
-    var smscType = pdu.slice(cursor, cursor+2);
-    cursor += 2;
-
-    var smscNum  = pduParser.deSwapNibbles(pdu.slice(cursor, smscSize*2+2));
-    cursor = smscSize*2+2;
-
-    var smsDeliver = parseInt(pdu.slice(cursor, cursor+2), 16);
-    cursor += 2;
+    var buffer = new Buffer(pdu.slice(cursor,cursor+6), 'hex');
+    cursor += 6;
+    var smsDeliver = buffer[0];
 
     var smsDeliverBits = ("00000000"+parseInt(smsDeliver).toString(2)).slice(-8);
     var udhi = smsDeliverBits.slice(1,2) === "1";
 
-    var senderSize = parseInt(pdu.slice(cursor, cursor+2), 16);
+    var senderSize = buffer[1];
     if(senderSize % 2 === 1)
         senderSize++;
-    cursor += 2;
 
-    var senderType = pdu.slice(cursor, cursor+2);
-    cursor += 2;
+    var senderType = parseInt(buffer[2]).toString(16)
+
 
     var senderNum = pduParser.deSwapNibbles(pdu.slice(cursor, cursor+senderSize));
     cursor += senderSize;
@@ -39,9 +36,24 @@ pduParser.parse = function(pdu) {
     var encoding = pduParser.detectEncoding(dataCodingScheme);
 
     var timestamp = pduParser.deSwapNibbles(pdu.slice(cursor, cursor+14));
-    var time = new Date('20'+timestamp.slice(0,2), timestamp.slice(2,4)-1, timestamp.slice(4,6), timestamp.slice(6,8), timestamp.slice(8,10), timestamp.slice(10,12));
-    var time = time.getTime();
-    time += ((timestamp.slice(12,14)*15)*1000) * 60; //Apply timezone offset.
+
+
+    var time = new Date;
+    time.setUTCFullYear('20'+timestamp.slice(0,2));
+    time.setUTCMonth(timestamp.slice(2,4)-1);
+    time.setUTCDate(timestamp.slice(4,6));
+    time.setUTCHours(timestamp.slice(6,8));
+    time.setUTCMinutes(timestamp.slice(8,10));
+    time.setUTCSeconds(timestamp.slice(10,12));
+
+    var firstTimezoneOctet = parseInt(timestamp.slice(12,13));
+    var binary = ("0000"+firstTimezoneOctet.toString(2)).slice(-4);
+    var factor = binary.slice(0,1) === '1' ? 1 : -1;
+    var binary = '0'+binary.slice(1, 4);
+    var firstTimezoneOctet = parseInt(binary, 2).toString(10);
+    var timezoneDiff = parseInt(firstTimezoneOctet + timestamp.slice(13, 14));
+    var time = new Date(time.getTime() + (timezoneDiff * 15 * 1000 * 60 * factor));
+
     cursor += 14;
 
     var dataLength = parseInt(pdu.slice(cursor, cursor+2), 16).toString(10);
@@ -50,7 +62,7 @@ pduParser.parse = function(pdu) {
     if(udhi) { //User-Data-Header-Indicator: means there's some User-Data-Header.
         var udhLength = pdu.slice(cursor, cursor+2);
         var iei = pdu.slice(cursor+2, cursor+4);
-        if(iei == "00") { //Concatenaded sms.
+        if(iei == "00") { //Concatenated sms.
             var headerLength = pdu.slice(cursor+4, cursor+6);
             var referenceNumber = pdu.slice(cursor+6, cursor+8);
             var parts = pdu.slice(cursor+8, cursor+10);
@@ -239,8 +251,10 @@ pduParser.generate = function(message) {
 
     pdu += '00'; //TODO TP-PID
 
-    pdu += '08'; //TODO: TP-CS
-
+    if(message.encoding === '16bit')
+        pdu += '08';
+    else if(message.encoding === '7bit')
+        pdu += '00';
 
     var pdus = new Array();
 
@@ -249,24 +263,35 @@ pduParser.generate = function(message) {
 
         if(message.encoding === '16bit') {
             /* If there are more than one messages to be sent, we are going to have to put some UDH. Then, we would have space only
-             * for 66 UCS2 characters instead of 77 */
+             * for 66 UCS2 characters instead of 70 */
             if(parts === 1)
                 var length = 70;
             else
                 var length = 66;
+
         } else if(message.encoding === '7bit') {
             /* If there are more than one messages to be sent, we are going to have to put some UDH. Then, we would have space only
-             * for 153 UCS2 characters instead of 160 */
+             * for 153 ASCII characters instead of 160 */
             if(parts === 1)
                 var length = 160;
             else
                 var length = 153;
         }
+        var text = message.text.slice(i*length, (i*length)+length);
 
-        var user_data = message.text.slice(i*length, (i*length)+length);
-        pdus[i] += ('00'+parseInt(user_data.length*2).toString(16)).slice(-2);
+        if(message.encoding === '16bit') {
+            user_data = pduParser.encode16Bit(text);
+            var size = (user_data.length / 2);
 
-        user_data = pduParser.encode16Bit(user_data); //TODO: 7Bit  PDU generation
+            if(parts > 1)
+                size += 6; //6 is the number of data headers we append.
+
+        } else if(message.encoding === '7bit') {
+            user_data = pduParser.encode7Bit(text);
+            var size = user_data.length / 2;
+        }
+
+        pdus[i] += ('00'+parseInt(size).toString(16)).slice(-2);
 
         if(parts > 1) {
             pdus[i] += '05';
@@ -340,5 +365,5 @@ pduParser.parseStatusReport = function(pdu) {
     }
 }
 
-if(module && module.exports)
-    module.exports = pduParser;
+module.exports = pduParser;
+
