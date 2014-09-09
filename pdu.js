@@ -258,6 +258,8 @@ pduParser.generate = function(message) {
 
     var pdus = new Array();
 
+    var csms = randomHexa(2); // CSMS allows to give a reference to a concatenated message
+
     for(var i=0; i< parts; i++) {
         pdus[i] = pdu;
 
@@ -297,7 +299,7 @@ pduParser.generate = function(message) {
             pdus[i] += '05';
             pdus[i] += '00';
             pdus[i] += '03';
-            pdus[i] += '00';
+            pdus[i] +=  csms;
             pdus[i] += ('00'+parts.toString(16)).slice(-2);
             pdus[i] += ('00'+(i+1).toString(16)).slice(-2);
         }
@@ -306,6 +308,7 @@ pduParser.generate = function(message) {
 
     return pdus;
 }
+
 
 pduParser.encode16Bit = function(text) {
     var out = '';
@@ -363,6 +366,15 @@ pduParser.parseStatusReport = function(pdu) {
         sender:sender,
         status:status
     }
+}
+
+function randomHexa(size)
+{
+    var text = "";
+    var possible = "0123456789ABCDEF";
+    for( var i=0; i < size; i++ )
+        text += possible.charAt(Math.floor(Math.random() * possible.length));
+    return text;
 }
 
 module.exports = pduParser;
