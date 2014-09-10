@@ -1,5 +1,7 @@
 var pduParser = {};
 
+var sevenbitdefault = new Array('@', '£', '$', '¥', 'è', 'é', 'ù', 'ì', 'ò', 'Ç', '\n', 'Ø', 'ø', '\r','Å', 'å','\u0394', '_', '\u03a6', '\u0393', '\u039b', '\u03a9', '\u03a0','\u03a8', '\u03a3', '\u0398', '\u039e','€', 'Æ', 'æ', 'ß', 'É', ' ', '!', '"', '#', '¤', '%', '&', '\'', '(', ')','*', '+', ',', '-', '.', '/', '0', '1', '2', '3', '4', '5', '6', '7','8', '9', ':', ';', '<', '=', '>', '?', '¡', 'A', 'B', 'C', 'D', 'E','F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S','T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'Ä', 'Ö', 'Ñ', 'Ü', '§', '¿', 'a','b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o','p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'ä', 'ö', 'ñ','ü', 'à');
+
 pduParser.parse = function(pdu) {
     //Cursor points to the last octet we've read.
     var cursor = 0;
@@ -161,8 +163,6 @@ pduParser.deSwapNibbles = function(nibbles) {
 }
 
 pduParser.decode7Bit = function(code, count) {
-    var sevenbitdefault = new Array('@', '£', '$', '¥', 'è', 'é', 'ù', 'ì', 'ò', 'Ç', '\n', 'Ø', 'ø', '\r','Å', 'å','\u0394', '_', '\u03a6', '\u0393', '\u039b', '\u03a9', '\u03a0','\u03a8', '\u03a3', '\u0398', '\u039e','€', 'Æ', 'æ', 'ß', 'É', ' ', '!', '"', '#', '¤', '%', '&', '\'', '(', ')','*', '+', ',', '-', '.', '/', '0', '1', '2', '3', '4', '5', '6', '7','8', '9', ':', ';', '<', '=', '>', '?', '¡', 'A', 'B', 'C', 'D', 'E','F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S','T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'Ä', 'Ö', 'Ñ', 'Ü', '§', '¿', 'a','b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o','p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'ä', 'ö', 'ñ','ü', 'à');
-
     //We are getting 'septeps'. We should decode them.
     var binary = '';
     for(var i = 0; i<code.length;i++)
@@ -197,7 +197,7 @@ pduParser.encode7Bit = function(ascii) {
     //We should create septeps now.
     var octets = new Array();
     for(var i = 0; i<ascii.length; i++)
-        octets.push(('0000000'+(ascii.charCodeAt(i).toString(2))).slice(-7));
+        octets.push(('0000000'+(ascii.GSMCodeAt(i).toString(2))).slice(-7));
 
     for(var i in octets) {
         var i = parseInt(i);
@@ -214,6 +214,20 @@ pduParser.encode7Bit = function(ascii) {
         if(octets[i].length > 0)
             hex += ('00'+(parseInt(octets[i], 2).toString(16))).slice(-2);
     return hex;
+}
+
+String.prototype.GSMCodeAt = function(i) //sp
+{
+    var character = this[i];
+    
+    for(var i=0;i<sevenbitdefault.length;i++)
+    {
+        if(sevenbitdefault[i] == character)
+        {
+            return i;
+        }
+    };
+    return 0;
 }
 
 //TODO: TP-Validity-Period (Delivery)

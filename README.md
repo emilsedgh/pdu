@@ -21,7 +21,7 @@ var pdu = require('pdu');
     pdu.generate({
       text:'Some text',
       receiver:999999999999, //MSISDN
-      encoding:'16bit' //Or 7bit if you're sending an ascii message.
+      encoding:'16bit' //Or 7bit if you're sending a message made of GSM standard alphabet characters.
     });
 ```
 
