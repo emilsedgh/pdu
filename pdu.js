@@ -245,7 +245,6 @@ String.prototype.GSMCodeAt = function(i) //sp
 //TODO: TP-Validity-Period (Delivery)
 pduParser.generate = function(message) {
     var pdu = '00';
-
     var parts = 1;
     if(message.encoding === '16bit' && message.text.length > 70)
         parts = message.text.length / 66;
@@ -325,7 +324,7 @@ pduParser.generate = function(message) {
             }
             else {
                 user_data = pduParser.encode7Bit(text);
-                var size = user_data.length / 2;
+                var size = text.length;
             }
         }
 
