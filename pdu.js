@@ -142,7 +142,7 @@ pduParser.detectEncoding = function(dataCodingScheme) {
 pduParser.decode16Bit = function(data, length) {
     //We are getting ucs2 characters.
     var ucs2 = '';
-    for(var i = 0;i<=data.length;i=i+4) {
+    for(var i = 0;i<=data.length-1;i=i+4) {
         ucs2 += String.fromCharCode("0x"+data[i]+data[i+1]+data[i+2]+data[i+3]);
     }
 
