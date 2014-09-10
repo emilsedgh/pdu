@@ -193,27 +193,39 @@ pduParser.decode7Bit = function(code, count) {
     return ascii;
 }
 
-pduParser.encode7Bit = function(ascii) {
-    //We should create septeps now.
-    var octets = new Array();
-    for(var i = 0; i<ascii.length; i++)
-        octets.push(('0000000'+(ascii.GSMCodeAt(i).toString(2))).slice(-7));
-
-    for(var i in octets) {
-        var i = parseInt(i);
-        var freeSpace = 8 - octets[i].length;
-
-        if(octets[i+1] && freeSpace !== 8) {
-            octets[i] = octets[i+1].slice(7-freeSpace) + octets[i];
-            octets[i+1] = octets[i+1].slice(0, 7-freeSpace);
-        }
+pduParser.encode7Bit = function(inText, paddingBits)
+{
+    //as explained here http://mobiletidings.com/2009/07/06/how-to-pack-gsm7-into-septets/
+    var paddingBits = paddingBits || 0;
+    var bits = 0;
+    var out = "";
+    var inTextNumber = [];
+    for(var j in inText){
+        inTextNumber.push(inText.GSMCodeAt(j));
     }
 
-    var hex = '';
-    for(i in octets)
-        if(octets[i].length > 0)
-            hex += ('00'+(parseInt(octets[i], 2).toString(16))).slice(-2);
-    return hex;
+    if(paddingBits)
+        {
+            bits = 7 - paddingBits;
+            var octet = (inTextNumber[0] << (7 - bits)) % 256
+            out += ('00' + octet.toString(16)).slice(-2);
+            bits++;
+        }
+
+    for(var i = 0; i < inTextNumber.length; i++ )
+    {
+        if( bits == 7 )
+        {
+            bits = 0;
+            continue;
+        }
+        var octet = (inTextNumber[i] & 0x7f) >> bits;
+        if( i < inTextNumber.length - 1 )
+            {octet |= (inTextNumber[i + 1] << (7 - bits))%256;}
+        out += ('00' + octet.toString(16)).slice(-2);
+        bits++;
+    }
+    return out;
 }
 
 String.prototype.GSMCodeAt = function(i) //sp
@@ -307,8 +319,14 @@ pduParser.generate = function(message) {
                 size += 6; //6 is the number of data headers we append.
 
         } else if(message.encoding === '7bit') {
-            user_data = pduParser.encode7Bit(text);
-            var size = user_data.length / 2;
+            if(parts > 1){
+                user_data = pduParser.encode7Bit(text,1);
+                var size = 7 + text.length;
+            }
+            else {
+                user_data = pduParser.encode7Bit(text);
+                var size = user_data.length / 2;
+            }
         }
 
         pdus[i] += ('00'+parseInt(size).toString(16)).slice(-2);
