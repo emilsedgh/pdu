@@ -78,11 +78,10 @@ pduParser.parse = function(pdu) {
             var currentPart = pdu.slice(cursor+12, cursor+14);
         }
 
-        if(encoding === '16bit')
-            if(iei == '00')
-                cursor += (udhLength-2)*4;
-            else if(iei == '08')
-                cursor += ((udhLength-2)*4)+2;
+        if(iei == '00')
+            cursor += (udhLength-2)*4;
+        else if(iei == '08')
+            cursor += ((udhLength-2)*4)+2;
         else
             cursor += (udhLength-2)*2;
     }
@@ -90,7 +89,8 @@ pduParser.parse = function(pdu) {
     if(encoding === '16bit')
         var text = pduParser.decode16Bit(pdu.slice(cursor), dataLength);
     else if(encoding === '7bit')
-        var text = pduParser.decode7Bit(pdu.slice(cursor), dataLength);
+        if (udhi && iei=='00') var text = pduParser.decode7Bit(pdu.slice(cursor), 1); //If iei ==0, then there is some unpadding to do
+        else var text = pduParser.decode7Bit(pdu.slice(cursor)); //If no udhi or iei = 08 then no unpadding to do
     else if(encoding === '8bit')
         var text = ''; //TODO
 
@@ -162,11 +162,23 @@ pduParser.deSwapNibbles = function(nibbles) {
     return out;
 }
 
-pduParser.decode7Bit = function(code, count) {
+pduParser.decode7Bit = function(code, unPadding) {
     //We are getting 'septeps'. We should decode them.
     var binary = '';
     for(var i = 0; i<code.length;i++)
         binary += ('0000'+parseInt(code.slice(i,i+1), 16).toString(2)).slice(-4);
+
+    //This step is for 'unpadding' the padded data. If it has been encoded with 1 bit padding as it
+    //happens when the sender used a 7-bit message concatenation (cf http://mobiletidings.com/2009/02/18/combining-sms-messages/)
+    if (unPadding){
+        var binary2 = '';
+        binary = binary + '00000000';
+        for (var i=0; i<binary.length/8 - 1 ; i++)
+        {
+            binary2 += (binary.slice((i+1)*8+(8-unPadding), (i+2)*8) + binary.slice(i*8,i*8+(8-unPadding)));
+        }
+        binary = binary2;
+    }
 
     var bin = Array();
     var cursor = 0;
