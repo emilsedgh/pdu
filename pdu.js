@@ -1,6 +1,8 @@
 var pduParser = {};
 
-var sevenbitdefault = new Array('@', '£', '$', '¥', 'è', 'é', 'ù', 'ì', 'ò', 'Ç', '\n', 'Ø', 'ø', '\r','Å', 'å','\u0394', '_', '\u03a6', '\u0393', '\u039b', '\u03a9', '\u03a0','\u03a8', '\u03a3', '\u0398', '\u039e','€', 'Æ', 'æ', 'ß', 'É', ' ', '!', '"', '#', '¤', '%', '&', '\'', '(', ')','*', '+', ',', '-', '.', '/', '0', '1', '2', '3', '4', '5', '6', '7','8', '9', ':', ';', '<', '=', '>', '?', '¡', 'A', 'B', 'C', 'D', 'E','F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S','T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'Ä', 'Ö', 'Ñ', 'Ü', '§', '¿', 'a','b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o','p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'ä', 'ö', 'ñ','ü', 'à');
+var sevenBitDefault = new Array('@', '£', '$', '¥', 'è', 'é', 'ù', 'ì', 'ò', 'Ç', '\n', 'Ø', 'ø', '\r','Å', 'å','\u0394', '_', '\u03a6', '\u0393', '\u039b', '\u03a9', '\u03a0','\u03a8', '\u03a3', '\u0398', '\u039e','\x1b', 'Æ', 'æ', 'ß', 'É', ' ', '!', '"', '#', '¤', '%', '&', '\'', '(', ')','*', '+', ',', '-', '.', '/', '0', '1', '2', '3', '4', '5', '6', '7','8', '9', ':', ';', '<', '=', '>', '?', '¡', 'A', 'B', 'C', 'D', 'E','F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S','T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'Ä', 'Ö', 'Ñ', 'Ü', '§', '¿', 'a','b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o','p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'ä', 'ö', 'ñ','ü', 'à');
+var sevenBitEsc = new Array('', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '^', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '{', '}', '', '', '', '', '', '\\', '', '', '', '', '', '', '', '', '', '', '', '', '[', '~', ']', 
+    '', '|', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '€', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '');
 
 pduParser.parse = function(pdu) {
     //Cursor points to the last octet we've read.
@@ -89,8 +91,9 @@ pduParser.parse = function(pdu) {
     if(encoding === '16bit')
         var text = pduParser.decode16Bit(pdu.slice(cursor), dataLength);
     else if(encoding === '7bit')
-        if (udhi && iei=='00') var text = pduParser.decode7Bit(pdu.slice(cursor), 1); //If iei ==0, then there is some unpadding to do
-        else var text = pduParser.decode7Bit(pdu.slice(cursor)); //If no udhi or iei = 08 then no unpadding to do
+        if (udhi && iei=='00') var text = pduParser.decode7Bit(pdu.slice(cursor), dataLength-7, 1); //If iei ==0, then there is some unpadding to do
+        else if (udhi && iei=='08') var text = pduParser.decode7Bit(pdu.slice(cursor), dataLength-8); //If no udhi or iei = 08 then no unpadding to do
+        else var text = pduParser.decode7Bit(pdu.slice(cursor), dataLength);
     else if(encoding === '8bit')
         var text = ''; //TODO
 
@@ -162,7 +165,7 @@ pduParser.deSwapNibbles = function(nibbles) {
     return out;
 }
 
-pduParser.decode7Bit = function(code, unPadding) {
+pduParser.decode7Bit = function(code, length, unPadding) {
     //We are getting 'septeps'. We should decode them.
     var binary = '';
     for(var i = 0; i<code.length;i++)
@@ -197,11 +200,19 @@ pduParser.decode7Bit = function(code, unPadding) {
     }
 
     var ascii = '';
-    for(i in bin)
-        if(parseInt(bin[i], 2)){
-            ascii += sevenbitdefault[parseInt(bin[i], 2)];
+    var esc = false; //last character was a ESC
+    for(var i=0; i<length; i++){
+        var codeNum = parseInt(bin[i], 2);
+        if (codeNum == 0x1B){
+            esc = true;
+            continue;
         }
-        else break;
+        if (esc)
+            ascii += sevenBitEsc[codeNum];
+        else
+            ascii += sevenBitDefault[codeNum];
+        esc = false;        
+    }
     return ascii;
 }
 
@@ -211,10 +222,7 @@ pduParser.encode7Bit = function(inText, paddingBits)
     var paddingBits = paddingBits || 0;
     var bits = 0;
     var out = "";
-    var inTextNumber = [];
-    for(var j in inText){
-        inTextNumber.push(inText.GSMCodeAt(j));
-    }
+    var inTextNumber = this.GSMEncode(inText); //inTextNumber is an array of int
 
     if(paddingBits)
         {
@@ -240,19 +248,25 @@ pduParser.encode7Bit = function(inText, paddingBits)
     return out;
 }
 
-String.prototype.GSMCodeAt = function(i) //sp
+pduParser.GSMEncode = function(text) //sp
 {
-    var character = this[i];
-    
-    for(var i=0;i<sevenbitdefault.length;i++)
+    //7bit GSM encoding according to GSM_03.38 character set http://en.wikipedia.org/wiki/GSM_03.38
+    res = [];
+    for (var k=0; k<text.length; k++)
     {
-        if(sevenbitdefault[i] == character)
+        var character = text[k];
+        for(var i=0;i<sevenBitDefault.length;i++)
         {
-            return i;
+            if(sevenBitDefault[i] == character)
+                res.push(i);
+            if (sevenBitEsc[i] == character){
+                res.push(0x1B); //escape character
+                res.push(i);
+            }
         }
-    };
-    return 0;
-}
+    }
+    return res;
+};
 
 //TODO: TP-Validity-Period (Delivery)
 pduParser.generate = function(message) {
