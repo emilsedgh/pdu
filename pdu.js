@@ -216,54 +216,65 @@ pduParser.decode7Bit = function(code, length, unPadding) {
     return ascii;
 }
 
-pduParser.encode7Bit = function(inText, paddingBits)
+pduParser.encode7Bit = function(inTextNumberArray, paddingBits)
 {
     //as explained here http://mobiletidings.com/2009/07/06/how-to-pack-gsm7-into-septets/
     var paddingBits = paddingBits || 0;
     var bits = 0;
     var out = "";
-    var inTextNumber = this.GSMEncode(inText); //inTextNumber is an array of int
 
     if(paddingBits)
         {
             bits = 7 - paddingBits;
-            var octet = (inTextNumber[0] << (7 - bits)) % 256
+            var octet = (inTextNumberArray[0] << (7 - bits)) % 256
             out += ('00' + octet.toString(16)).slice(-2);
             bits++;
         }
 
-    for(var i = 0; i < inTextNumber.length; i++ )
+    for(var i = 0; i < inTextNumberArray.length; i++ )
     {
         if( bits == 7 )
         {
             bits = 0;
             continue;
         }
-        var octet = (inTextNumber[i] & 0x7f) >> bits;
-        if( i < inTextNumber.length - 1 )
-            {octet |= (inTextNumber[i + 1] << (7 - bits))%256;}
+        var octet = (inTextNumberArray[i] & 0x7f) >> bits;
+        if( i < inTextNumberArray.length - 1 )
+            {octet |= (inTextNumberArray[i + 1] << (7 - bits))%256;}
         out += ('00' + octet.toString(16)).slice(-2);
         bits++;
     }
     return out;
 }
 
-pduParser.GSMEncode = function(text) //sp
+pduParser.encode16Bit = function(inTextNumberArray) {
+    var out = '';
+    for(var i = 0; i<inTextNumberArray.length;i++) {
+        out += ('0000'+(inTextNumberArray[i].toString(16))).slice(-4);
+    }
+    return out;
+}
+
+pduParser.messageToNumberArray = function(message) //sp
 {
     //7bit GSM encoding according to GSM_03.38 character set http://en.wikipedia.org/wiki/GSM_03.38
     res = [];
-    for (var k=0; k<text.length; k++)
+    for (var k=0; k<message.text.length; k++)
     {
-        var character = text[k];
-        for(var i=0;i<sevenBitDefault.length;i++)
-        {
-            if(sevenBitDefault[i] == character)
-                res.push(i);
-            if (sevenBitEsc[i] == character){
-                res.push(0x1B); //escape character
-                res.push(i);
+        if (message.encoding == '7bit'){
+            var character = message.text[k];
+            for(var i=0;i<sevenBitDefault.length;i++)
+            {
+                if(sevenBitDefault[i] == character)
+                    res.push(i);
+                if (sevenBitEsc[i] == character){
+                    res.push(0x1B); //escape character
+                    res.push(i);
+                }
             }
         }
+        else if (message.encoding == '16bit')
+            res.push(message.text.charCodeAt(k));
     }
     return res;
 };
@@ -272,11 +283,13 @@ pduParser.GSMEncode = function(text) //sp
 pduParser.generate = function(message) {
     var pdu = '00';
     var parts = 1;
-    if(message.encoding === '16bit' && message.text.length > 70)
-        parts = message.text.length / 66;
+    var inTextNumberArray = this.messageToNumberArray(message);
 
-    else if(message.encoding === '7bit' && message.text.length > 160)
-        parts = message.text.length / 153;
+    if(message.encoding === '16bit' && inTextNumberArray.length > 70)
+        parts = inTextNumberArray.length / 66;
+
+    else if(message.encoding === '7bit' && inTextNumberArray.length > 160)
+        parts = inTextNumberArray.length / 153;
 
     parts = Math.ceil(parts);
 
@@ -334,7 +347,7 @@ pduParser.generate = function(message) {
             else
                 var length = 153;
         }
-        var text = message.text.slice(i*length, (i*length)+length);
+        var text = inTextNumberArray.slice(i*length, (i*length)+length);
 
         if(message.encoding === '16bit') {
             user_data = pduParser.encode16Bit(text);
@@ -370,14 +383,6 @@ pduParser.generate = function(message) {
     return pdus;
 }
 
-
-pduParser.encode16Bit = function(text) {
-    var out = '';
-    for(var i = 0; i<text.length;i++) {
-        out += ('0000'+(parseInt(text.charCodeAt(i), 10).toString(16))).slice(-4);
-    }
-    return out;
-}
 
 pduParser.swapNibbles = function(nibbles) {
     var out = '';
