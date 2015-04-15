@@ -183,8 +183,10 @@ pduParser.decode7Bit = function(code, count) {
     }
 
     var ascii = '';
-    for(i in bin)
+    for(i in bin){
+        if (parseInt(bin[i], 2) == 0) break; // terminate ascii string on null chanracter!
         ascii += String.fromCharCode(parseInt(bin[i], 2));
+    }
 
     return ascii;
 }
@@ -290,7 +292,10 @@ pduParser.generate = function(message) {
 
         } else if(message.encoding === '7bit') {
             user_data = pduParser.encode7Bit(text);
-            var size = user_data.length / 2;
+            // var size = user_data.length / 2;
+            var size = text.length; // the actual len
+            // console.log("sms.text %d: %s", text.length, text);
+            // console.log("sms.user_data %d: %s", user_data.length, user_data);
         }
 
         pdus[i] += ('00'+parseInt(size).toString(16)).slice(-2);
