@@ -42,7 +42,7 @@ Submit.prototype.setVp = function(value)
 	
 	this._vp = new VP(this);
 	
-	if(is_string(typeof(value) === 'string')){
+	if(typeof(value) === 'string'){
 		this._vp.setDateTime(value);
 	} else {
 		this._vp.setInterval(value);
