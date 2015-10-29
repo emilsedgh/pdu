@@ -191,7 +191,7 @@ PDU.parse = function(str)
         switch(self.getDcs().getTextAlphabet()){
             case DCS.ALPHABET_8BIT:    return '8bit';
             case DCS.ALPHABET_DEFAULT: return '7bit';
-            case DCS.ALPHABET_UCS2:    return '7bit';
+            case DCS.ALPHABET_UCS2:    return '16bit';
             default:                   return undefined;
         }
     })();
