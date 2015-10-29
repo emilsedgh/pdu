@@ -1,15 +1,15 @@
 'use strict';
 
 var PDU     = require('../pdu'),
-	sprintf = require('sprintf');
-	
+    sprintf = require('sprintf');
+    
 function SCTS(date)
 {
-	/**
-	 * unix time
-	 * @var integer
-	 */
-	this._time = date.getTime() / 1000;
+    /**
+     * unix time
+     * @var integer
+     */
+    this._time = date.getTime() / 1000;
 }
 
 /**
@@ -18,21 +18,21 @@ function SCTS(date)
  */
 SCTS.parse = function()
 {
-	var hex    = PDU.getPduSubstr(14),
-		params = ["20%02d-%02d-%02d %02d:%02d:%02d"];
+    var hex    = PDU.getPduSubstr(14),
+        params = ["20%02d-%02d-%02d %02d:%02d:%02d"];
 
-		hex.match(/.{1,2}/g).map(function(s){
-			params.push(
-				parseInt(
-					s.split("").reverse().join("")
-				)
-			);
-		});
-	
-	var time = Date.parse(sprintf.apply(sprintf, params)),
-		date = new Date(time);
-	
-	return new SCTS(date);
+        hex.match(/.{1,2}/g).map(function(s){
+            params.push(
+                parseInt(
+                    s.split("").reverse().join("")
+                )
+            );
+        });
+    
+    var time = Date.parse(sprintf.apply(sprintf, params)),
+        date = new Date(time);
+    
+    return new SCTS(date);
 };
 
 /**
@@ -41,7 +41,7 @@ SCTS.parse = function()
  */
 SCTS.prototype.getTime = function()
 {
-	return this._time;
+    return this._time;
 };
 
 /**
@@ -50,16 +50,16 @@ SCTS.prototype.getTime = function()
  */
 SCTS.prototype._getDateTime = function()
 {
-	var dt = new Date(this.getTime() * 1000);
-	return printf(
-		'%02d%02d%02d%02d%02d%02d00', 
-		dt.getYear(),
-		dt.getMonth() + 1,
-		dt.getDate(),
-		dt.getHours(),
-		dt.getMinutes(),
-		dt.getSeconds()
-	);
+    var dt = new Date(this.getTime() * 1000);
+    return printf(
+        '%02d%02d%02d%02d%02d%02d00', 
+        dt.getYear(),
+        dt.getMonth() + 1,
+        dt.getDate(),
+        dt.getHours(),
+        dt.getMinutes(),
+        dt.getSeconds()
+    );
 };
 
 /**
@@ -68,14 +68,14 @@ SCTS.prototype._getDateTime = function()
  */
 SCTS.prototype.toString = function() 
 {
-	
-	return this._getDateTime()
-		.match(/.{1,2}/g)
-		.map(function(s){
-			return parseInt(
-				s.split("").reverse().join("")
-			);
-		}).join("");
+    
+    return this._getDateTime()
+        .match(/.{1,2}/g)
+        .map(function(s){
+            return parseInt(
+                s.split("").reverse().join("")
+            );
+        }).join("");
 };
 
 

@@ -1,23 +1,23 @@
 'use strict';
 
 var PDU     = require('../../pdu'),
-	sprintf = require('sprintf');
-	
+    sprintf = require('sprintf');
+    
 function Type(value)
 {
-	value = value || 0x91;
-	
-	/**
-	 * Type of number
-	 * @var integer
-	 */
-	this._type = 0x07 & (value>>4);
-	
-	/**
-	 * Numbering plan identification
-	 * @var integer
-	 */
-	this._plan = 0x0F & value;
+    value = value || 0x91;
+    
+    /**
+     * Type of number
+     * @var integer
+     */
+    this._type = 0x07 & (value>>4);
+    
+    /**
+     * Numbering plan identification
+     * @var integer
+     */
+    this._plan = 0x0F & value;
 }
 
 Type.TYPE_UNKNOWN           = 0x00;
@@ -44,7 +44,7 @@ Type.PLAN_RESERVED          = 0x0F;
  */
 Type.prototype.setType = function(type)
 {
-	this._type = 0x07 & type;
+    this._type = 0x07 & type;
 };
 
 /**
@@ -53,7 +53,7 @@ Type.prototype.setType = function(type)
  */
 Type.prototype.getType = function()
 {
-	return this._type;
+    return this._type;
 };
 
 /**
@@ -62,7 +62,7 @@ Type.prototype.getType = function()
  */
 Type.prototype.setPlan = function(plan)
 {
-	this._plan = 0x0F & plan;
+    this._plan = 0x0F & plan;
 };
 
 /**
@@ -71,7 +71,7 @@ Type.prototype.setPlan = function(plan)
  */
 Type.prototype.getPlan = function()
 {
-	return this._plan;
+    return this._plan;
 };
 
 /**
@@ -80,7 +80,7 @@ Type.prototype.getPlan = function()
  */
 Type.prototype.getValue = function()
 {
-	return (1 << 7) | (this.getType() << 4) | this.getPlan();
+    return (1 << 7) | (this.getType() << 4) | this.getPlan();
 };
 
 /**
@@ -89,7 +89,7 @@ Type.prototype.getValue = function()
  */
 Type.prototype.toString = function()
 {
-	return sprintf("%02X", this.getValue());
+    return sprintf("%02X", this.getValue());
 };
 
 module.exports = Type;

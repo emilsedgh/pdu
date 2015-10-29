@@ -1,30 +1,30 @@
 'use strict';
 
 var PDU     = require('../pdu'),
-	sprintf = require('sprintf');
-	
+    sprintf = require('sprintf');
+    
 function PID()
 {
-	/**
-	 * pid value
-	 * @var integer
-	 */
-	this._pid = PID.PID_ASSIGNED;
-	
-	/**
-	 * value = 0 : no interworking, but SME-to-SME protocol
-	 * value = 1 : telematic interworking
-	 * @var integer
-	 */
-	this._indicates = 0x00;
-	
-	/**
-	 * type value
-	 * @var integer
-	 */
-	this._type = PID.TYPE_IMPLICIT;
-	
-	
+    /**
+     * pid value
+     * @var integer
+     */
+    this._pid = PID.PID_ASSIGNED;
+    
+    /**
+     * value = 0 : no interworking, but SME-to-SME protocol
+     * value = 1 : telematic interworking
+     * @var integer
+     */
+    this._indicates = 0x00;
+    
+    /**
+     * type value
+     * @var integer
+     */
+    this._type = PID.TYPE_IMPLICIT;
+    
+    
 }
 
 PID.PID_ASSIGNED   = 0x00; // Assigns bits 0..5 as defined below
@@ -43,15 +43,15 @@ PID.TYPE_IEM       = 0x12; // Internet Electronic Mail
 
 PID.parse = function()
 {
-	var buffer = Buffer(PDU.getPduSubstr(2), 'hex'),
-		byte   = buffer[0],
-		self   = new PID();
-	
-	self.setPid(byte >> 6);
-	self.setIndicates(byte >> 5);
-	self.setType(byte);
-	
-	return self;
+    var buffer = Buffer(PDU.getPduSubstr(2), 'hex'),
+        byte   = buffer[0],
+        self   = new PID();
+    
+    self.setPid(byte >> 6);
+    self.setIndicates(byte >> 5);
+    self.setType(byte);
+    
+    return self;
 };
 
 /**
@@ -60,7 +60,7 @@ PID.parse = function()
  */
 PID.prototype.getPid = function()
 {
-	return this._pid;
+    return this._pid;
 };
 
 /**
@@ -69,7 +69,7 @@ PID.prototype.getPid = function()
  */
 PID.prototype.setPid = function(pid)
 {
-	this._pid = 0x03 & pid;
+    this._pid = 0x03 & pid;
 };
 
 /**
@@ -78,7 +78,7 @@ PID.prototype.setPid = function(pid)
  */
 PID.prototype.getIndicates = function()
 {
-	return this._indicates;
+    return this._indicates;
 };
 
 /**
@@ -87,7 +87,7 @@ PID.prototype.getIndicates = function()
  */
 PID.prototype.setIndicates = function(indicates)
 {
-	this._indicates = 0x01 & indicates;
+    this._indicates = 0x01 & indicates;
 };
 
 /**
@@ -96,7 +96,7 @@ PID.prototype.setIndicates = function(indicates)
  */
 PID.prototype.getType = function()
 {
-	return this._type;
+    return this._type;
 };
 
 /**
@@ -105,7 +105,7 @@ PID.prototype.getType = function()
  */
 PID.prototype.setType = function(type)
 {
-	this._type = 0x1F & type;
+    this._type = 0x1F & type;
 };
 
 /**
@@ -114,7 +114,7 @@ PID.prototype.setType = function(type)
  */
 PID.prototype.getValue = function()
 {
-	return (this._pid << 6) | (this._indicates << 5) | this._type;
+    return (this._pid << 6) | (this._indicates << 5) | this._type;
 };
 
 /**
@@ -123,7 +123,7 @@ PID.prototype.getValue = function()
  */
 PID.prototype.toString = function()
 {
-	return '' + this.getValue();
+    return '' + this.getValue();
 };
 
 module.exports = PID;

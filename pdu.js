@@ -1,77 +1,77 @@
 'use strict';
 
 var util    = require('util'),
-	sprintf = require('sprintf');
+    sprintf = require('sprintf');
 
 function PDU()
 {
-	/**
-	 * Service Centre Address
-	 * @var SCA
-	 */
-	this._sca;
-	
-	/**
-	 * Transport Protocol Data Unit
-	 * @var Type
-	 */
-	this._type;
-	
-	/**
-	 * Originator or Destination Address
-	 * @var SCA
-	 */
-	this._address;
-	
-	/**
-	 * Protoсol Identifier
-	 * @var PID
-	 */
-	this._pid;
-	
-	/**
-	 * Data Coding Scheme
-	 * @var DCS
-	 */
-	this._dcs;
-	
-	/**
-	 * User Data Length
-	 * @var integer
-	 */
-	this._udl;
-	
-	/**
-	 * User Data
-	 * @var string
-	 */
-	this._ud;
-	
-	this.setSca();
-	this.initType();
-	this.setPid();
-	this.setDcs();
-	
+    /**
+     * Service Centre Address
+     * @var SCA
+     */
+    this._sca;
+    
+    /**
+     * Transport Protocol Data Unit
+     * @var Type
+     */
+    this._type;
+    
+    /**
+     * Originator or Destination Address
+     * @var SCA
+     */
+    this._address;
+    
+    /**
+     * Protoсol Identifier
+     * @var PID
+     */
+    this._pid;
+    
+    /**
+     * Data Coding Scheme
+     * @var DCS
+     */
+    this._dcs;
+    
+    /**
+     * User Data Length
+     * @var integer
+     */
+    this._udl;
+    
+    /**
+     * User Data
+     * @var string
+     */
+    this._ud;
+    
+    this.setSca();
+    this.initType();
+    this.setPid();
+    this.setDcs();
+    
 };
 
 PDU.getModule = function(name)
 {
-	return require('./' + name);
+    return require('./' + name);
 };
 
 PDU.Submit  = function()
 {
-	return new (require('./Submit'))();
+    return new (require('./Submit'))();
 };
 
 PDU.Report  = function()
 {
-	return new (require('./Report'))();
+    return new (require('./Report'))();
 };
 
 PDU.Deliver = function()
 {
-	return new (require('./Deliver'))();
+    return new (require('./Deliver'))();
 };
 
 /**
@@ -80,32 +80,32 @@ PDU.Deliver = function()
  */
 PDU.generate = function(params)
 {
-	
-	if( ! params.receiver){
-		throw new Error("Receiver not set");
-	}
-	
-	var DCS = PDU.getModule('PDU/DCS');
-	
-	var Submit = PDU.Submit(),
-		dcs    = Submit.getDcs();
-	
-	switch(params.encoding){
-		case '16bit': dcs.setTextAlphabet(DCS.ALPHABET_UCS2);    break;
-		case '8bit':  dcs.setTextAlphabet(DCS.ALPHABET_8BIT);    break;
-		case '7bit':  dcs.setTextAlphabet(DCS.ALPHABET_DEFAULT); break;
-	}
-	
-	Submit.setAddress('' + params.receiver);
-	Submit.setData(params.text || '');
-	Submit.getType().setSrr(1);
-	
-	var parts = Submit.getParts();
+    
+    if( ! params.receiver){
+        throw new Error("Receiver not set");
+    }
+    
+    var DCS = PDU.getModule('PDU/DCS');
+    
+    var Submit = PDU.Submit(),
+        dcs    = Submit.getDcs();
+    
+    switch(params.encoding){
+        case '16bit': dcs.setTextAlphabet(DCS.ALPHABET_UCS2);    break;
+        case '8bit':  dcs.setTextAlphabet(DCS.ALPHABET_8BIT);    break;
+        case '7bit':  dcs.setTextAlphabet(DCS.ALPHABET_DEFAULT); break;
+    }
+    
+    Submit.setAddress('' + params.receiver);
+    Submit.setData(params.text || '');
+    Submit.getType().setSrr(1);
+    
+    var parts = Submit.getParts();
 
-	return parts.map(function(part){
-		return part.toString();
-	});
-	
+    return parts.map(function(part){
+        return part.toString();
+    });
+    
 };
 
 /**
@@ -115,14 +115,14 @@ PDU.generate = function(params)
  */
 PDU.parseStatusReport = function(str)
 {
-	var pdu = PDU.parse(str);
-	
-	pdu.smsc      = pdu.getSca().getPhone();
-	pdu.reference = pdu.getReference();
-	pdu.sender    = pdu.getSca().getPhone();
-	pdu.status    = pdu.getStatus();
-	
-	return pdu;
+    var pdu = PDU.parse(str);
+    
+    pdu.smsc      = pdu.getSca().getPhone();
+    pdu.reference = pdu.getReference();
+    pdu.sender    = pdu.getSca().getPhone();
+    pdu.status    = pdu.getStatus();
+    
+    return pdu;
 };
 
 /**
@@ -138,9 +138,9 @@ PDU._pduParse = '';
  */
 PDU.getPduSubstr = function(length)
 {
-	var str = PDU._pduParse.substr(0, length);
-	PDU._pduParse = PDU._pduParse.substr(length);
-	return str;
+    var str = PDU._pduParse.substr(0, length);
+    PDU._pduParse = PDU._pduParse.substr(length);
+    return str;
 };
 
 /**
@@ -151,49 +151,49 @@ PDU.getPduSubstr = function(length)
  */
 PDU.parse = function(str)
 {
-	var SCA     = PDU.getModule('PDU/SCA'),
-		DCS     = PDU.getModule('PDU/DCS'),
-		Deliver = require('./Deliver'),
-		Helper  = PDU.getModule('PDU/Helper');
-	
-	// current pdu string
-	PDU._pduParse = str;
+    var SCA     = PDU.getModule('PDU/SCA'),
+        DCS     = PDU.getModule('PDU/DCS'),
+        Deliver = require('./Deliver'),
+        Helper  = PDU.getModule('PDU/Helper');
+    
+    // current pdu string
+    PDU._pduParse = str;
 
-	// parse service center address
-	var sca = SCA.parse(false);
-		
-	// parse type of sms
-	var self = Helper.getPduByType();
-	
-	// set sca
-	self._sca = sca;
-		
-	// parse sms address
-	self._address = SCA.parse();
-	
-	self = Helper.initVars(self);
-	
-	// Legacy support
-	self.smsc        = self.getSca().getPhone();
-	self.smsc_type   = self.getSca().getType().toString();
-	self.sender      = self.getAddress().getPhone();
-	self.sender_type = self.getAddress().getType().toString();
-	self.text        = self.getData().getData();
-	
-	if(self instanceof Deliver){
-		self.time = self.getScts().getTime() * 1000;
-	}
-	
-	self.encoding = (function(){
-		switch(self.getDcs().getTextAlphabet()){
-			case DCS.ALPHABET_8BIT:    return '8bit';
-			case DCS.ALPHABET_DEFAULT: return '7bit';
-			case DCS.ALPHABET_UCS2:    return '7bit';
-			default:                   return undefined;
-		}
-	})();
-	
-	return self;
+    // parse service center address
+    var sca = SCA.parse(false);
+        
+    // parse type of sms
+    var self = Helper.getPduByType();
+    
+    // set sca
+    self._sca = sca;
+        
+    // parse sms address
+    self._address = SCA.parse();
+    
+    self = Helper.initVars(self);
+    
+    // Legacy support
+    self.smsc        = self.getSca().getPhone();
+    self.smsc_type   = self.getSca().getType().toString();
+    self.sender      = self.getAddress().getPhone();
+    self.sender_type = self.getAddress().getType().toString();
+    self.text        = self.getData().getData();
+    
+    if(self instanceof Deliver){
+        self.time = self.getScts().getTime() * 1000;
+    }
+    
+    self.encoding = (function(){
+        switch(self.getDcs().getTextAlphabet()){
+            case DCS.ALPHABET_8BIT:    return '8bit';
+            case DCS.ALPHABET_DEFAULT: return '7bit';
+            case DCS.ALPHABET_UCS2:    return '7bit';
+            default:                   return undefined;
+        }
+    })();
+    
+    return self;
 };
 
 /**
@@ -202,7 +202,7 @@ PDU.parse = function(str)
  */
 PDU.prototype.getUdl = function()
 {
-	return this._udl;
+    return this._udl;
 };
 
 /**
@@ -211,7 +211,7 @@ PDU.prototype.getUdl = function()
  */
 PDU.prototype.setUdl = function(udl)
 {
-	this._udl = udl;
+    this._udl = udl;
 };
 
 /**
@@ -221,22 +221,22 @@ PDU.prototype.setUdl = function(udl)
  */
 PDU.prototype.setSca = function(address)
 {
-	var SCA = PDU.getModule('PDU/SCA');
-	
-	if(address instanceof SCA){
-		this._sca = address;
-		return this;
-	}
+    var SCA = PDU.getModule('PDU/SCA');
+    
+    if(address instanceof SCA){
+        this._sca = address;
+        return this;
+    }
 
-	if( ! this._sca){
-		this._sca = new SCA(false);
-	}
+    if( ! this._sca){
+        this._sca = new SCA(false);
+    }
 
-	if(address){
-		this._sca.setPhone(address, true);
-	}
+    if(address){
+        this._sca.setPhone(address, true);
+    }
 
-	return this;
+    return this;
 };
 
 /**
@@ -245,7 +245,7 @@ PDU.prototype.setSca = function(address)
  */
 PDU.prototype.getSca = function()
 {
-	return this._sca;
+    return this._sca;
 };
 
 /**
@@ -254,7 +254,7 @@ PDU.prototype.getSca = function()
  */
 PDU.prototype.getType = function()
 {
-	return this._type;
+    return this._type;
 };
 
 /**
@@ -263,7 +263,7 @@ PDU.prototype.getType = function()
  */
 PDU.prototype.setType = function(type)
 {
-	this._type = type;
+    this._type = type;
 };
 
 /**
@@ -273,16 +273,16 @@ PDU.prototype.setType = function(type)
  */
 PDU.prototype.setAddress = function(address)
 {
-	var SCA = PDU.getModule('PDU/SCA');
-	
-	if(address instanceof SCA){
-		this._address = address;
-		return this;
-	}
-	
-	this._address = new SCA();
-	this._address.setPhone(address);
-	return this;
+    var SCA = PDU.getModule('PDU/SCA');
+    
+    if(address instanceof SCA){
+        this._address = address;
+        return this;
+    }
+    
+    this._address = new SCA();
+    this._address.setPhone(address);
+    return this;
 };
 
 /**
@@ -291,7 +291,7 @@ PDU.prototype.setAddress = function(address)
  */
 PDU.prototype.getAddress = function()
 {
-	return this._address;
+    return this._address;
 };
 
 /**
@@ -301,9 +301,9 @@ PDU.prototype.getAddress = function()
  */
 PDU.prototype.setDcs = function(dcs)
 {
-	var DCS = PDU.getModule('PDU/DCS');
-	this._dcs = dcs || new DCS();
-	return this;
+    var DCS = PDU.getModule('PDU/DCS');
+    this._dcs = dcs || new DCS();
+    return this;
 };
 
 /**
@@ -312,7 +312,7 @@ PDU.prototype.setDcs = function(dcs)
  */
 PDU.prototype.getDcs = function()
 {
-	return this._dcs;
+    return this._dcs;
 };
 
 /**
@@ -322,16 +322,16 @@ PDU.prototype.getDcs = function()
  */
 PDU.prototype.setData = function(data)
 {
-	var Data = PDU.getModule('PDU/Data');
-	
-	if(data instanceof Data){
-		this._ud = data;
-	} else {
-		this._ud = new Data(this);
-		this._ud.setData(data);
-	}
-	
-	return this;
+    var Data = PDU.getModule('PDU/Data');
+    
+    if(data instanceof Data){
+        this._ud = data;
+    } else {
+        this._ud = new Data(this);
+        this._ud.setData(data);
+    }
+    
+    return this;
 };
 
 /**
@@ -340,7 +340,7 @@ PDU.prototype.setData = function(data)
  */
 PDU.prototype.getData = function()
 {
-	return this._ud;
+    return this._ud;
 };
 
 /**
@@ -350,9 +350,9 @@ PDU.prototype.getData = function()
  */
 PDU.prototype.setPid = function(pid)
 {
-	var PID = PDU.getModule('PDU/PID');
-	this._pid = pid || new PID();
-	return this;
+    var PID = PDU.getModule('PDU/PID');
+    this._pid = pid || new PID();
+    return this;
 };
 
 /**
@@ -361,7 +361,7 @@ PDU.prototype.setPid = function(pid)
  */
 PDU.prototype.getPid = function()
 {
-	return this._pid;
+    return this._pid;
 };
 
 /**
@@ -370,35 +370,35 @@ PDU.prototype.getPid = function()
  */
 PDU.prototype.getParts = function()
 {
-	if( ! this.getAddress()){
-		throw new Error("Address not set");
-	}
+    if( ! this.getAddress()){
+        throw new Error("Address not set");
+    }
 
-	if( ! this.getData()){
-		throw new Error("Data not set");
-	}
+    if( ! this.getData()){
+        throw new Error("Data not set");
+    }
 
-	return this.getData().getParts();
+    return this.getData().getParts();
 };
 
 PDU.debug = function(message)
 {
-	if( ! PDU.isDebug){
-		return;
-	}
-	
-	var dt    = new Date(),
-		dtime = sprintf(
-			"%04d-%02d-%02dT%02d:%02d:%02d.%03d",
-			dt.getFullYear(),
-			dt.getMonth() + 1,
-			dt.getDate(),
-			dt.getHours(),
-			dt.getMinutes(),
-			dt.getSeconds(),
-			dt.getMilliseconds()
-		);
-	console.info("# %s - %s", dtime, message);
+    if( ! PDU.isDebug){
+        return;
+    }
+    
+    var dt    = new Date(),
+        dtime = sprintf(
+            "%04d-%02d-%02dT%02d:%02d:%02d.%03d",
+            dt.getFullYear(),
+            dt.getMonth() + 1,
+            dt.getDate(),
+            dt.getHours(),
+            dt.getMinutes(),
+            dt.getSeconds(),
+            dt.getMilliseconds()
+        );
+    console.info("# %s - %s", dtime, message);
 };
 
 module.exports = PDU;
