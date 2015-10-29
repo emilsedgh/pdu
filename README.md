@@ -159,9 +159,9 @@ status:status }
 ### SCTS - Time
 * statics:
  * [SCTS] parse(hex) // parse hex string
- * [Integer] getTime()
 * methods:
  * constructor(Date date) // 
+ * [Integer] getTime()
 
 ### SCA 
 ### SCA/Type
