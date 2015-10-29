@@ -148,9 +148,9 @@ status:status }
  * [integer] getUdhi()
  * [integer] getValue()
  * [integer] getVpf()
- * [integer] setSrr(Integer srr)
- * [integer] setUdhi(Integer udhi)
- * [integer] setVpf(Integer vpf) // one of constants VPF_{}
+ * [void] setSrr(Integer srr)
+ * [void] setUdhi(Integer udhi)
+ * [void] setVpf(Integer vpf) // one of constants VPF_{}
 
 ### Type/Deliver
 ### Type/Report
