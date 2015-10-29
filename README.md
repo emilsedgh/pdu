@@ -109,7 +109,7 @@ status:status }
 
 ### PDU/Submit - extended from PDU
 * [integer] getMr() // get message reference
-* [./PDU/VP] getVp() // get validity period
+* [VP] getVp() // get validity period
 * [void] setMr(integer mr) // set message reference
 * [void] setVp(integer|string dtime) // set validity period
 
