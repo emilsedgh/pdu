@@ -178,7 +178,10 @@ PDU.parse = function(str)
     self.smsc_type   = self.getSca().getType().toString();
     self.sender      = self.getAddress().getPhone();
     self.sender_type = self.getAddress().getType().toString();
-    self.text        = self.getData().getData();
+
+    if(self.getData()){
+        self.text = self.getData().getData();
+    }
     
     if(self instanceof Deliver){
         self.time = self.getScts().getTime() * 1000;
