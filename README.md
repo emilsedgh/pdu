@@ -137,7 +137,6 @@ status:status }
  * SMS_SUBMIT   = 0x01;
  * SMS_DELIVER  = 0x00;
  * SMS_REPORT   = 0x02;
-
  * VPF_NONE     = 0x00;
  * VPF_SIEMENS  = 0x01;
  * VPF_RELATIVE = 0x02;
@@ -149,7 +148,6 @@ status:status }
  * [integer] getUdhi()
  * [integer] getValue()
  * [integer] getVpf()
-
  * [integer] setSrr(Integer srr)
  * [integer] setUdhi(Integer udhi)
  * [integer] setVpf(Integer vpf) // one of constants VPF_{}
@@ -162,7 +160,6 @@ status:status }
 * statics:
  * [SCTS] parse(hex) // parse hex string
  * [Integer] getTime()
-
 * methods:
  * constructor(Date date) // 
 
