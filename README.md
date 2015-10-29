@@ -30,21 +30,21 @@ returns an array of generated pdu's.
 
 ### pdu.Submit() 
 ```js
-    var Submit = pdu.Submit();
+    var Submit = pdu.Submit(); // Submit, Deliver, Report
 
-    // set number of sms center
+    // set number of sms center (optional)
     Submit.setSca('999999999999');
 
-    // set number of recipent
+    // set number of recipent (required)
     Submit.setAddress('+999999999999');
 
-    // set validity period 4 days
+    // set validity period 4 days (optional)
     Submit.setVp(3600 * 24 * 4);
 
-    // set text of message
+    // set text of message (required)
     Submit.setData('Some text');
 
-    // set status report request
+    // set status report request (optional, default is off)
     Submit.getType().setSrr(1);
 
     // get all parts of message
@@ -61,6 +61,7 @@ pdu.parse('06918919015000240C9189194238148900003110211052254117CAB03D3C1FCBD3703
 ```
 
 Returns an object, containing parsed information:
+Note: current version of module supported object format and will merged with object of the pdu type (Submit, Deliver, Report) 
 ```js
 { smsc: '9891100500',
 smsc_type: '91',
@@ -69,4 +70,13 @@ sender_type: '91',
 encoding: '7bit',
 time: 1357953952000,
 text: 'Javascript makes sense.' }
+```
+
+### pdu.parseStatusReport()
+Will call pdu.parse() method and create format below merged with object instance of ./PDU/Report
+```js
+{ smsc:smscNum,
+reference:reference,
+sender:sender,
+status:status }
 ```
