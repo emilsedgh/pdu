@@ -79,7 +79,7 @@ VP.prototype.getPdu = function()
  */
 VP.prototype.setDateTime = function(datetime)
 {
-	this._datetime = datetime;
+	this._datetime = new Date(Date.parse(datetime));
 };
 
 /**
