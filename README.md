@@ -61,7 +61,6 @@ pdu.parse('06918919015000240C9189194238148900003110211052254117CAB03D3C1FCBD3703
 ```
 
 Returns an object, containing parsed information:
-Note: current version of module supported object format and will merged with object of the pdu type (Submit, Deliver, Report) 
 ```js
 { smsc: '9891100500',
 smsc_type: '91',
@@ -71,6 +70,7 @@ encoding: '7bit',
 time: 1357953952000,
 text: 'Javascript makes sense.' }
 ```
+Note: current version of module supported object format and will merged with object of the pdu type (Submit, Deliver, Report) 
 
 ### pdu.parseStatusReport()
 Will call method pdu.parse() and will create this format for legacy support 
