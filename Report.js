@@ -1,7 +1,6 @@
 'use strict';
 
 var PDU     = require('./pdu'),
-	SCTS    = require('./PDU/SCTS'),
 	sprintf = require('sprintf'),
 	util    = require('util');
 	
@@ -150,4 +149,4 @@ Report.prototype.getStart = function()
 	return null;
 };
 
-modules.export = Report;
+module.exports = Report;

@@ -16,7 +16,8 @@ var pdu = require('pdu');
 ```
 
 
-### pdu.generate()
+### pdu.generate() 
+Depricated, but works
 ```js
     pdu.generate({
       text:'Some text',
@@ -26,6 +27,33 @@ var pdu = require('pdu');
 ```
 
 returns an array of generated pdu's.
+
+### pdu.Submit() 
+```js
+    var Submit = pdu.Submit();
+
+    // set number of sms center
+    Submit.setSca('999999999999');
+
+    // set number of recipent
+    Submit.setAddress('+999999999999');
+
+    // set validity period 4 days
+    Submit.setVp(3600 * 24 * 4);
+
+    // set text of message
+    Submit.setData('Some text');
+
+    // set status report request
+    Submit.getType().setSrr(1);
+
+    // get all parts of message
+    var parts = Submit.getParts();
+
+    parts.forEach(function(part){
+      // part is object, instance of ./PDU/Data/Part, could be casted to string like ('' + part) or part.toString()
+    });
+```
 
 ### pdu.parse()
 ```js

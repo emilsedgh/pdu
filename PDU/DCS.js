@@ -1,6 +1,6 @@
 'use strict';
 
-var PDU     = require('./pdu'),
+var PDU     = require('../pdu'),
 	sprintf = require('sprintf');
 	
 function DCS()
@@ -244,11 +244,11 @@ DCS.prototype.toString = function()
  * Set store message
  * @return \self
  */
-DCs.prototype.setStoreMessage = function()
+DCS.prototype.setStoreMessage = function()
 {
 	this._storeMessage = true;
 	return this;
-}
+};
 
 /**
  * Set store message UCS2
@@ -433,4 +433,4 @@ DCS.prototype.setUseMessageClass = function(use)
 	return this;
 };
 
-modules.export = DCS;
+module.exports = DCS;

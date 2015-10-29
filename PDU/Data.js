@@ -1,6 +1,6 @@
 'use strict';
 
-var PDU     = require('./pdu'),
+var PDU     = require('../pdu'),
 	sprintf = require('sprintf');
 	
 function Data(pdu)
@@ -45,6 +45,8 @@ Data.HEADER_SIZE = 7; //UDHL + UDH
  */
 Data.parse = function(pdu)
 {
+	var DCS  = PDU.getModule('PDU/DCS'),
+		Part = PDU.getModule('PDU/Data/Part');
 	var data = new Data(pdu);
 	
 	if(pdu.getDcs().getTextAlphabet() === DCS.ALPHABET_UCS2){
@@ -54,7 +56,7 @@ Data.parse = function(pdu)
 	var tmp = Part.parse(data);
 	data._data = tmp[0];
 	data._size = tmp[1];
-	part       = tmp[2];
+	var part   = tmp[2];
 	
 	data._parts.push(part);
 	
@@ -136,6 +138,8 @@ Data.prototype.setData = function(data)
  */
 Data.prototype._checkData = function()
 {
+	var Helper = PDU.getModule('PDU/Helper');
+	
 	// set is unicode to false
 	this._isUnicode = false;
 	// set zero size
@@ -161,8 +165,10 @@ Data.prototype._checkData = function()
  */
 Data.prototype._prepareParts = function()
 {
-	// 
-	var headerSize = data.HEADER_SIZE;
+	var DCS        = PDU.getModule('PDU/DCS'),
+		Helper     = PDU.getModule('PDU/Helper'),
+		Part       = PDU.getModule('PDU/Data/Part');
+	var headerSize = Data.HEADER_SIZE;
 	var max        = Helper.getLimit('normal');
 	
 	if(this._isUnicode){
@@ -190,26 +196,31 @@ Data.prototype._prepareParts = function()
 		this.getPdu().getType().setUdhi(1);
 	}
 	
+	var self = this;
 	parts.forEach(function(text, index){
 		
+		PDU.debug("Part: [" + index + "] " + text);
 		var params = (header ? {'SEGMENTS': parts.length,'CURRENT': (index+1),'POINTER': uniqid} : undefined);
 		
 		var part = null,
 			size = 0,
 			tmp;
 		
-		switch(this.getPdu().getDcs().getTextAlphabet()){
+		switch(self.getPdu().getDcs().getTextAlphabet()){
 			
 			case DCS.ALPHABET_DEFAULT:
-				tmp = Helper.encode7bit($text);
+				PDU.debug("Helper.encode7bit(text)");
+				tmp = Helper.encode7bit(text);
 				break;
 			
 			case DCS.ALPHABET_8BIT:
-				tmp = Helper.encode8Bit($text);
+				PDU.debug("Helper.encode8Bit(text)");
+				tmp = Helper.encode8Bit(text);
 				break;
 			
 			case DCS.ALPHABET_UCS2:
-				tmp = Helper.encode16Bit($text);
+				PDU.debug("Helper.encode16Bit(text)");
+				tmp = Helper.encode16Bit(text);
 				break;
 			
 			default:
@@ -218,12 +229,12 @@ Data.prototype._prepareParts = function()
 		
 		size = tmp[0];
 		part = tmp[1];
-
+		
 		if(header){
 			size += headerSize;
 		}
 		
-		this._parts.push(new Part(this, part, size, params));
+		self._parts.push(new Part(self, part, size, params));
 	});
 	
 };
@@ -301,4 +312,4 @@ Data.prototype.getParts = function()
 	return this._parts;
 };
 
-modules.export = Data;
+module.exports = Data;

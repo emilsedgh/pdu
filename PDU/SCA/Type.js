@@ -1,9 +1,6 @@
 'use strict';
 
-var PDU     = require('./pdu'),
-	Header  = require('./Header'),
-	DCS     = require('../DCS'),
-	Helper  = require('../Helper'),
+var PDU     = require('../../pdu'),
 	sprintf = require('sprintf');
 	
 function Type(value)
@@ -95,4 +92,4 @@ Type.prototype.toString = function()
 	return sprintf("%02X", this.getValue());
 };
 
-modules.export = Type;
+module.exports = Type;

@@ -1,6 +1,6 @@
 'use strict';
 
-var PDU     = require('./pdu'),
+var PDU     = require('../../pdu'),
 	sprintf = require('sprintf');
 	
 function Header(params)
@@ -163,4 +163,4 @@ Header.prototype.toString = function()
 	return head;
 };
 
-modules.export = Header;
+module.exports = Header;

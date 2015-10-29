@@ -1,6 +1,6 @@
 'use strict';
 
-var PDU     = require('./pdu'),
+var PDU     = require('../../pdu'),
 	Type    = require('../Type'),
 	sprintf = require('sprintf'),
 	util    = require('util');
@@ -22,4 +22,4 @@ function Submit(params)
 
 util.inherits(Submit, Type);
 
-modules.export = Submit;
+module.exports = Submit;

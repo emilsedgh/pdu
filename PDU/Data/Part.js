@@ -1,9 +1,6 @@
 'use strict';
 
-var PDU     = require('./pdu'),
-	Header  = require('./Header'),
-	DCS     = require('../DCS'),
-	Helper  = require('../Helper'),
+var PDU     = require('../../pdu'),
 	sprintf = require('sprintf');
 	
 function Part(parent, data, size, header)
@@ -40,6 +37,7 @@ function Part(parent, data, size, header)
 	
 	// have params for header
 	if(header){
+		var Header = PDU.getModule('PDU/Data/Header');
 		// create header
 		this._header = new Header(header);
 	}
@@ -53,12 +51,17 @@ function Part(parent, data, size, header)
  */
 Part.parse = function(data)
 {
+	var Header = PDU.getModule('PDU/Data/Header'),
+		Helper = PDU.getModule('PDU/Helper'),
+		DCS    = PDU.getModule('PDU/DCS');
+	
 	var alphabet = data.getPdu().getDcs().getTextAlphabet(),
 		header   = null,
 		length   = data.getPdu().getUdl() * (alphabet === DCS.ALPHABET_UCS2 ? 4 : 2),
 		text     = undefined;
 	
 	if(data.getPdu().getType().getUdhi()){
+		PDU.debug("Header.parse()");
 		header = Header.parse();
 	}
 	
@@ -158,11 +161,17 @@ Part.prototype._getPartSize = function()
  */
 Part.prototype.toString = function()
 {
+	PDU.debug("_getPduString() " + this._getPduString());
+	PDU.debug("_getPartSize() "  + this._getPartSize());
+	PDU.debug("getHeader() "     + this.getHeader());
+	PDU.debug("getData() "       + this.getData());
+		
 	// concate pdu, size of part, headers, data
-	return this._getPduString()        + 
-		   this._getPartSize()         + 
-		   this.getHeader().toString() +
-		   this.getData().toString();
+	return '' + 
+		   (this._getPduString() || '') + 
+		   (this._getPartSize()  || '') + 
+		   (this.getHeader()     || '') +
+		   (this.getData()       || '');
 };
 
-modules.export = Part;
+module.exports = Part;

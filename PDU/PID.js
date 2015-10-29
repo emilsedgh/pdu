@@ -1,6 +1,6 @@
 'use strict';
 
-var PDU     = require('./pdu'),
+var PDU     = require('../pdu'),
 	sprintf = require('sprintf');
 	
 function PID()
@@ -126,4 +126,4 @@ PID.prototype.toString = function()
 	return '' + this.getValue();
 };
 
-modules.export = PID;
+module.exports = PID;

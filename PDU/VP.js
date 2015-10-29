@@ -1,8 +1,6 @@
 'use strict';
 
-var PDU     = require('./pdu'),
-	SCTS    = require('./SCTS'),
-	Type    = require('./Type'),
+var PDU     = require('../pdu'),
 	sprintf = require('sprintf');
 	
 function VP(submit)
@@ -35,6 +33,9 @@ function VP(submit)
  */
 VP.parse = function(submit)
 {
+	var SCTS = PDU.getModule('PDU/SCTS'),
+		Type = PDU.getModule('PDU/Type');
+	
 	var vp = new VP(submit);
 	
 	switch(submit.getType().getVpf()){
@@ -61,7 +62,7 @@ VP.parse = function(submit)
 		default:
 			throw new Error("Unknown VPF");
 	}
-}
+};
 
 /**
  * getter for pdu message
@@ -96,6 +97,9 @@ VP.prototype.setInterval = function(interval)
  */
 VP.prototype.toString = function()
 {
+	var SCTS = PDU.getModule('PDU/SCTS'),
+		Type = PDU.getModule('PDU/Type');
+
 	// get pdu type
 	var type = this.getPdu().getType();
 	
@@ -132,4 +136,4 @@ VP.prototype.toString = function()
 };
 
 
-modules.export = VP;
+module.exports = VP;

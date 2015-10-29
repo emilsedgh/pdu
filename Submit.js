@@ -1,7 +1,6 @@
 'use strict';
 
 var PDU     = require('./pdu'),
-	VP      = require('./VP'),
 	sprintf = require('sprintf'),
 	util    = require('util');
 	
@@ -35,6 +34,8 @@ util.inherits(Submit, PDU);
  */
 Submit.prototype.setVp = function(value)
 {
+	var VP = PDU.getModule('PDU/VP');
+	
 	if(value instanceof VP){
 		this._vp = value;
 		return this;
@@ -115,4 +116,4 @@ Submit.prototype.getStart = function()
 	return str;
 };
 
-modules.export = Submit;
+module.exports = Submit;

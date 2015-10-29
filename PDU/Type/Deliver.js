@@ -1,6 +1,6 @@
 'use strict';
 
-var PDU     = require('./pdu'),
+var PDU     = require('../../pdu'),
 	Type    = require('../Type'),
 	sprintf = require('sprintf'),
 	util    = require('util');
@@ -24,4 +24,4 @@ function Deliver(params)
 
 util.inherits(Deliver, Type);
 
-modules.export = Deliver;
+module.exports = Deliver;

@@ -1,7 +1,6 @@
 'use strict';
 
 var PDU     = require('./pdu'),
-	SCTS    = require('./PDU/SCTS'),
 	sprintf = require('sprintf'),
 	util    = require('util');
 	
@@ -28,6 +27,8 @@ util.inherits(Deliver, PDU);
  */
 Deliver.prototype.setScts = function(time)
 {
+	var SCTS = PDU.getModule('PDU/SCTS');
+	
 	if(time instanceof SCTS){
 		this._scts = time;
 	} else {
@@ -101,4 +102,4 @@ Deliver.prototype.getStart = function()
 	return str;
 };
 
-modules.export = Deliver;
+module.exports = Deliver;

@@ -1,8 +1,6 @@
 'use strict';
 
-var PDU     = require('./pdu'),
-	Type    = require('./SCA/Type'),
-	Helper  = require('./Helper'),
+var PDU     = require('../pdu'),
 	sprintf = require('sprintf');
 	
 function SCA(isAddress)
@@ -40,6 +38,8 @@ function SCA(isAddress)
 	 */
 	this._isAddress = false;
 	
+	var Type = PDU.getModule('PDU/SCA/Type');
+	
 	// create sca type
 	this.setType(new Type());
 		
@@ -48,6 +48,9 @@ function SCA(isAddress)
 
 SCA.parse = function(isAddress)
 {
+	var Type   = PDU.getModule('PDU/SCA/Type'),
+		Helper = PDU.getModule('PDU/Helper');
+	
 	if(isAddress === undefined) isAddress = true;
 	
 	var buffer = new Buffer(PDU.getPduSubstr(2), 'hex');
@@ -119,8 +122,11 @@ SCA.prototype.getPhone = function()
  */
 SCA.prototype.setPhone = function(phone, SC)
 {
+	var Helper = PDU.getModule('PDU/Helper'),
+		Type   = PDU.getModule('PDU/SCA/Type');
+	
 	this._phone     = phone;
-	var clear       = phone.replace(/([^a-c0-9\*\#]*)g/, '');
+	var clear       = phone.replace(/[^a-c0-9\*\#]/gi, '');
 	this._isAddress = !SC;
 	
 	if(this.getType().getType() === Type.TYPE_ALPHANUMERICAL){
@@ -134,7 +140,7 @@ SCA.prototype.setPhone = function(phone, SC)
 		this._size = SC ? 1 + ((clear.length + 1)/2) : clear.length;
 		
 		this._encoded = clear.split("").map(function(s){
-			return SCA._map_filter_encode(s)
+			return SCA._map_filter_encode(s);
 		}).join("");
 		
 	}
@@ -183,6 +189,7 @@ SCA.prototype.isAddress = function()
  */
 SCA.prototype.toString = function()
 {
+	var Type = PDU.getModule('PDU/SCA/Type');
 	var str = sprintf("%02X", this.getSize());
 	
 	if(this.getSize()){
@@ -191,7 +198,7 @@ SCA.prototype.toString = function()
 		
 		if(this.getType().getType() !== Type.TYPE_ALPHANUMERICAL){
 			// reverse octets
-			l = this._encoded.length;
+			var l = this._encoded.length;
 			for(var i = 0; i < l; i += 2){
 				var b1 = this._encoded.substr(i, 1),
 					b2 = ((i + 1) >= l) ? 'F' : this._encoded.substr(i+1, 1);
@@ -251,4 +258,4 @@ SCA._map_filter_encode = function(letter)
 };
 
 
-modules.export = SCA;
+module.exports = SCA;

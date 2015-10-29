@@ -1,6 +1,6 @@
 'use strict';
 
-var PDU     = require('./pdu'),
+var PDU     = require('../pdu'),
 	sprintf = require('sprintf');
 	
 function Type()
@@ -68,13 +68,13 @@ Type.parse = function()
 	
 	switch((3&byte)){
 		case Type.SMS_DELIVER:
-			type = new require('./Type/Deliver')();
+			type = new (require('./Type/Deliver'))();
 			break;
 		case Type.SMS_SUBMIT:
-			type = new require('./Type/Submit')();
+			type = new (require('./Type/Submit'))();
 			break;
 		case Type.SMS_REPORT:
-			type = new require('./Type/Report')();
+			type = new (require('./Type/Report'))();
 			break;
 		default:
 			throw new Error("Unknown type sms");
@@ -188,4 +188,4 @@ Type.prototype.toString = function()
 };
 
 
-modules.export = Type;
+module.exports = Type;

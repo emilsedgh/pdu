@@ -5,7 +5,7 @@
   "homepage": "http://github.com/emilsedgh/pdu",
   "main": "./pdu",
   "dependencies": {
-	  "sprintf": "0.1.5"
+    "sprintf": "~0.1.5"
   },
   "keywords": [
     "pdu",

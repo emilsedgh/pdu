@@ -1,6 +1,6 @@
 'use strict';
 
-var PDU     = require('./pdu'),
+var PDU     = require('../pdu'),
 	sprintf = require('sprintf');
 	
 function SCTS(date)
@@ -29,11 +29,10 @@ SCTS.parse = function()
 			);
 		});
 	
-	return new SCTS(
-		Date.parse(
-			sprintf.apply(params)
-		)
-	);
+	var time = Date.parse(sprintf.apply(sprintf, params)),
+		date = new Date(time);
+	
+	return new SCTS(date);
 };
 
 /**
@@ -80,4 +79,4 @@ SCTS.prototype.toString = function()
 };
 
 
-modules.export = SCTS;
+module.exports = SCTS;

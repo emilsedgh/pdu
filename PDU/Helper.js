@@ -1,7 +1,6 @@
 'use strict';
 
-var PDU     = require('./pdu'),
-	Type    = require('./Type'),
+var PDU     = require('../pdu'),
 	sprintf = require('sprintf');
 	
 function Helper()
@@ -13,14 +12,19 @@ Helper._limitNormal   = 140;
 Helper._limitCompress = 160;
 Helper._limitUnicode  = 70;
 
+Helper.ucfirst = function(str)
+{
+	return str.substr(0, 1).toUpperCase() + str.substr(1);
+};
+
 /**
  * set limit
  * @param integer $limit
  * @param string $type
  */
-Helper.setlimit = function(limit, type)
+Helper.setLimit = function(limit, type)
 {
-	//self::${'_limit' . ucfirst($type)} = $limit;
+	Helper['_limit' + Helper.ucfirst(type)] = limit;
 };
 
 /**
@@ -28,35 +32,29 @@ Helper.setlimit = function(limit, type)
  * @param string $type
  * @return integer
  */
-Helper.getlimit = function(type)
+Helper.getLimit = function(type)
 {
-	//return self::${'_limit' . ucfirst($type)};
+	return Helper['_limit' + Helper.ucfirst(type)];
 };
 
 /**
  * ord() for unicode
  * @param string $char
- * @param string $encoding
  * @return integer
  */
-Helper.order = function(char, encoding) // = "UTF-8"
+Helper.order = function(char)
 {
-	//$char = mb_convert_encoding($char, "UCS-4BE", $encoding);
-	//$order = unpack("N", $char);
-	//return ($order ? $order[1] : null);
+	return char.charCodeAt(0);
 };
 
 /**
  * chr() for unicode
  * @param integer $order
- * @param string $encoding
  * @return string
  */
-Helper.char = function(order, encoding) //  = "UTF-8"
+Helper.char = function(order)
 {
-	//$order = pack("N", $order);
-	//$char = mb_convert_encoding($order, $encoding, "UCS-4BE");
-	//return $char;
+	return String.fromCharCode(order);
 };
 	
 /**
@@ -66,21 +64,10 @@ Helper.char = function(order, encoding) //  = "UTF-8"
  */
 Helper.decode16Bit = function(text)
 {
-	/*
-	return implode(
-		"",
-		array_map(
-			array('self', 'char'),
-			array_map(
-				'hexdec',
-				str_split(
-					$text, 
-					4
-				)
-			)
-		)
-	);
-	*/
+	return text.match(/.{1,4}/g).map(function(hex){
+		var buffer = new Buffer(hex, 'hex');
+		return Helper.char((buffer[0]<<8) | buffer[1]);
+	}).join("");
 };
 	
 /**
@@ -90,23 +77,10 @@ Helper.decode16Bit = function(text)
  */
 Helper.decode8Bit = function(text)
 {
-	/*
-	var buffer = new Buffer(text, "ascii");
-	
-	return implode(
-		"",
-		array_map(
-			array('self', 'char'),
-			array_map(
-				'hexdec',
-				str_split(
-					$text, 
-					2
-				)
-			)
-		)
-	);
-	*/
+	return text.match(/.{1,2}/g).map(function(hex){
+		var buffer = new Buffer(hex, 'hex');
+		return Helper.char(buffer[1]);
+	}).join("");
 };
 
 /**
@@ -124,7 +98,7 @@ Helper.decode7bit = function(text)
 	
 	for(var i = 0; i < data.length; i++){
 		var char = data[i];
-		if(shift == 7){
+		if(shift === 7){
 			ret.push(carry);
 			carry = 0;
 			shift = 0;
@@ -145,7 +119,7 @@ Helper.decode7bit = function(text)
 	}
 	
 	return (new Buffer(ret, "binary")).toString();
-}
+};
 
 /**
  * encode message
@@ -173,8 +147,8 @@ Helper.encode8Bit = function(text)
  */
 Helper.encode7bit = function(text)
 {
-	var ret   = ["%02X"],
-		data  = new Buffer(text, "utf-8"),
+	var ret   = [],
+		data  = new Buffer(text),
 		mask  = 0xFF,
 		shift = 0,
 		len   = data.length;
@@ -184,7 +158,7 @@ Helper.encode7bit = function(text)
 		var char     = data[i] & 0x7F,
 			nextChar = (i+1 < len) ? (data[i+1] & 0x7F) : 0;
 		
-		if (shift == 7) { shift = 0; continue; }
+		if (shift === 7) { shift = 0; continue; }
 		
 		var carry  = (nextChar & (((mask << (shift+1)) ^ 0xFF) & 0xFF)),
 			digit  = ((carry << (7-shift)) | (char >> shift) ) & 0xFF;
@@ -194,7 +168,13 @@ Helper.encode7bit = function(text)
 		shift++;
 	}
 	
-	return [len, sprintf.apply(undefined, ret)];
+	ret.unshift(
+		ret.map(function(){
+			return "%02X";
+		}).join("")
+	);
+	
+	return [len, sprintf.apply(sprintf, ret)];
 };
 
 /**
@@ -223,17 +203,19 @@ Helper.encode16Bit = function(text)
  */
 Helper.getPduByType = function()
 {
+	var Type = PDU.getModule('PDU/Type');
+	
 	// parse type of sms
 	var type = Type.parse(),
 		self = null;
 	
 	switch(type.getMti()){
 		case Type.SMS_DELIVER:
-			self = new Deliver();
+			self = PDU.Deliver();
 			break;
 	
 		case Type.SMS_SUBMIT:
-			self = new Submit();
+			self = PDU.Submit();
 			
 			var buffer = new Buffer(PDU.getPduSubstr(2), 'hex');
 			// get mr
@@ -241,7 +223,7 @@ Helper.getPduByType = function()
 			break;
 		
 		case Type.SMS_REPORT:
-			self = new Report();
+			self = PDU.Report();
 	
 			var buffer = new Buffer(PDU.getPduSubstr(2), 'hex');
 			// get reference
@@ -261,6 +243,13 @@ Helper.getPduByType = function()
 
 Helper.initVars = function(pdu)
 {
+	
+	var SCTS = PDU.getModule('PDU/SCTS'),
+		PID  = PDU.getModule('PDU/PID'),
+		DCS  = PDU.getModule('PDU/DCS'),
+		VP   = PDU.getModule('PDU/VP'),
+		Data = PDU.getModule('PDU/Data');
+	
 	// if is the report status
 	if(pdu.getType() instanceof require('./Type/Report')){
 		// parse timestamp
@@ -299,4 +288,4 @@ Helper.initVars = function(pdu)
 	return pdu;
 };
 
-modules.export = Helper;
+module.exports = Helper;
