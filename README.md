@@ -73,7 +73,7 @@ text: 'Javascript makes sense.' }
 ```
 
 ### pdu.parseStatusReport()
-Will call pdu.parse() method and create format below merged with object instance of ./PDU/Report
+Will call method pdu.parse() and will create this format for legacy support 
 ```js
 { smsc:smscNum,
 reference:reference,
