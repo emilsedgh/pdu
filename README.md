@@ -82,14 +82,14 @@ status:status }
 ```
 
 ### PDU
-- statics
--- [Submit] Submit() // create object of Submit
--- [Deliver] Deliver() // create object of Deliver
--- [Report] Report() // create object of Report
--- [void] debug(message) // if PDU.isDebug set true you will see debug information
--- [Submit] generate() // legacy support
--- [Submit|Deliver|Report] parse(str) // parse passwed string
--- [Report] parseStatusReport() // legacy method, see parse()
+- statics -
+-- [Submit] Submit() // create object of Submit --
+-- [Deliver] Deliver() // create object of Deliver --
+-- [Report] Report() // create object of Report --
+-- [void] debug(message) // if PDU.isDebug set true you will see debug information --
+-- [Submit] generate() // legacy support --
+-- [Submit|Deliver|Report] parse(str) // parse passwed string --
+-- [Report] parseStatusReport() // legacy method, see parse() --
 
 - object
 -- [SCA] getAddress() // get Originator or Destination Address
