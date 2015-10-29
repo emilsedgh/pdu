@@ -4,6 +4,9 @@
   "description": "A PDU parser and generator for browser and node",
   "homepage": "http://github.com/emilsedgh/pdu",
   "main": "./pdu",
+  "dependencies": {
+    "sprintf": "~0.1.5"
+  },
   "keywords": [
     "pdu",
     "sms"
