@@ -23,8 +23,16 @@ pduParser.parse = function(pdu) {
 
     var senderType = parseInt(buffer[2]).toString(16)
 
+    var encodedSender = pdu.slice(cursor, cursor + senderSize);
+    var senderNum;
+    if (senderType === '91') {
+        senderNum = pduParser.deSwapNibbles(encodedSender);
+    } else if (senderType === 'd0') {
+        senderNum = this.decode7Bit(encodedSender).replace(/\0/g, '');
+    } else {
+        console.error('unsupported sender type.');
+    }
 
-    var senderNum = pduParser.deSwapNibbles(pdu.slice(cursor, cursor+senderSize));
     cursor += senderSize;
 
     var protocolIdentifier = pdu.slice(cursor, cursor+2);
